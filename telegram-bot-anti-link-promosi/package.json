@@ -1,0 +1,14 @@
+{
+  "name": "telegram-bot-anti-link-promosi",
+  "version": "1.0.0",
+  "description": "Telegram bot that deletes messages containing links, promotional text, or sent by other bots.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "telegraf": "^4.15.3"
+  }
+}
